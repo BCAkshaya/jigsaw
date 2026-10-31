@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Connection options · Jigsaw Together</title>
+    <style>
+      [hidden] {
+        display: none !important;
+      }
+      :root {
+        font-family: system-ui, sans-serif;
+        background: #f6f5ee;
+        color: #34443b;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        max-width: 850px;
+        margin: auto;
+        padding: 35px 24px;
+      }
+      a {
+        color: #4b624b;
+      }
+      h1 {
+        font-family: Georgia, serif;
+        font-size: 36px;
+        font-weight: 400;
+      }
+      h2 {
+        font-size: 17px;
+      }
+      p {
+        font-size: 13px;
+        line-height: 1.7;
+        color: #728068;
+      }
+      .card {
+        background: #fffdf6;
+        border: 1px solid #d9dfce;
+        padding: 25px;
+        border-radius: 8px;
+        margin: 22px 0;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      label {
+        display: grid;
+        gap: 8px;
+        font-size: 12px;
+        margin: 15px 0;
+      }
+      input,
+      select,
+      textarea,
+      button {
+        font: inherit;
+        padding: 12px;
+        border: 1px solid #cad3bc;
+        border-radius: 4px;
+        min-width: 0;
+        background: #f9faf3;
+        color: #34443b;
+      }
+      textarea {
+        width: 100%;
+        min-height: 75px;
+        resize: vertical;
+      }
+      button {
+        cursor: pointer;
+      }
+      button.primary {
+        background: #4b624b;
+        color: #fff;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: wait;
+      }
+      .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .hint {
+        font-size: 11px;
+        color: #8a947c;
+      }
+      .pill {
+        padding: 8px 12px;
+        border-radius: 20px;
+        background: #e7eada;
+        font-size: 12px;
+        display: inline-block;
+      }
+      .pill.up {
+        background: #d5e8c9;
+        color: #2b5834;
+      }
+      #error {
+        color: #9f4835;
+      }
+      #open-game {
+        display: none;
+        font-size: 15px;
+        font-weight: 600;
+      }
+      #log {
+        font-size: 11px;
+        line-height: 1.8;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      .secret-row {
+        display: flex;
+        gap: 8px;
+      }
+      .secret-row input {
+        flex: 1;
+        min-width: 0;
+      }
+      summary {
+        cursor: pointer;
+        font-size: 12px;
+        padding: 10px 0;
+      }
+      .routes {
+        font-size: 12px;
+        line-height: 1.8;
+        overflow-wrap: anywhere;
+      }
+      code {
+        overflow-wrap: anywhere;
+      }
+      button:focus-visible,
+      input:focus-visible,
+      select:focus-visible,
+      textarea:focus-visible,
+      a:focus-visible {
+        outline: 3px solid #bf9959;
+        outline-offset: 3px;
+      }
+      @media (max-width: 600px) {
+        .row {
+          grid-template-columns: 1fr;
+          gap: 0;
+        }
+        .card {
+          padding: 18px;
+        }
+        body {
+          padding: 24px 16px;
+        }
+        h1 {
+          font-size: 29px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a id="back" href="http://localhost:3000">← Back to your puzzles</a>
+    <h1>A second way to the table.</h1>
+    <p>
+      Run the app on both computers. Choose who hosts the puzzle, use the same
+      private connection key, and connect. The host keeps the saved game. Your
+      browser still uses ordinary HTTP and Socket.IO through the peer tunnel.
+    </p>
+    <form id="form" class="card">
+      <div class="row">
+        <label
+          >This computer<select id="role">
+            <option value="host">Host — my computer holds the puzzle</option>
+            <option value="guest">Guest — connect to my friend’s puzzle</option>
+          </select></label
+        ><label
+          >Connection method<select id="mode">
+            <option value="udp">Direct UDP — public IPs and ports</option>
+            <option value="webrtc">
+              WebRTC — automatic ICE route selection
+            </option>
+            <option value="auto">Try both — first working route wins</option>
+          </select></label
+        >
+      </div>
+      <label
+        >Private connection key<span class="secret-row"
+          ><input
+            id="secret"
+            type="password"
+            autocomplete="off"
+            minlength="24"
+            maxlength="256"
+            required
+            aria-label="Private connection key"
+          /><button id="generate" type="button">Generate</button
+          ><button id="copy" type="button">Copy</button></span
+        ></label
+      >
+      <p class="hint">
+        Share this key privately. Both players must enter the same key. It
+        authenticates and encrypts the direct tunnel. It is kept in memory,
+        never saved to disk.
+      </p>
+      <div id="udp-fields">
+        <div class="row">
+          <label
+            >My UDP listening port<input
+              id="localPort"
+              type="number"
+              value="5000"
+              min="1024"
+              max="65535" /></label
+          ><label
+            >Friend’s UDP port<input
+              id="peerPort"
+              type="number"
+              value="5001"
+              min="1024"
+              max="65535"
+          /></label>
+        </div>
+        <label
+          >Friend’s public IPv4 or IPv6 address<input
+            id="peerHost"
+            placeholder="203.0.113.10 or 2001:db8::10"
+            autocomplete="off"
+        /></label>
+        <p class="hint">
+          Start both sides. Probes repeat every 250 ms until the authenticated
+          handshake succeeds; keep-alives run every 2 seconds. Use the peer’s
+          externally mapped UDP port if their router changes it. In “Try both”,
+          this address is optional.
+        </p>
+      </div>
+      <div id="rtc-fields" hidden>
+        <label
+          >Shared rendezvous server<input
+            id="signalUrl"
+            type="url"
+            placeholder="https://signal.example.com"
+        /></label>
+        <p class="hint">
+          Both players use the same reachable server. It exchanges encrypted
+          connection information automatically; you don’t enter peer IPs or ICE
+          candidates. A localhost URL works only when both browsers can reach
+          that computer. Keep this Connection options tab open for WebRTC.
+        </p>
+        <details>
+          <summary>STUN and optional TURN settings</summary>
+          <label
+            >STUN URLs, one per line<textarea id="stun">
+stun:stun.l.google.com:19302
+stun:stun.cloudflare.com:3478</textarea></label
+          ><label
+            >TURN URL (optional)<input
+              id="turn"
+              placeholder="turn:relay.example.com:3478"
+          /></label>
+          <div class="row">
+            <label
+              >TURN username<input id="turnUser" autocomplete="off" /></label
+            ><label
+              >TURN credential<input
+                id="turnPassword"
+                type="password"
+                autocomplete="off"
+            /></label>
+          </div>
+          <p class="hint">
+            ICE tests available paths. TURN is a relay fallback when no direct
+            route succeeds. No TURN service is bundled or configured for you.
+          </p>
+        </details>
+      </div>
+      <label id="guest-fields" hidden
+        >Open the tunneled game on local port<input
+          id="forwardPort"
+          type="number"
+          value="3001"
+          min="1024"
+          max="65535"
+      /></label>
+      <div class="actions">
+        <button id="start" class="primary" type="submit">
+          Start connecting</button
+        ><button id="stop" type="button">Stop</button>
+      </div>
+      <p id="error" role="alert"></p>
+    </form>
+    <section class="card" aria-live="polite">
+      <span id="status" class="pill">Not connected</span>
+      <p id="detail">Choose a connection method.</p>
+      <div id="routes" class="routes"></div>
+      <p id="metrics" class="hint"></p>
+      <a id="open-game" target="_blank" rel="noopener" href="#"
+        >Open the game ↗</a
+      >
+      <pre id="log"></pre>
+    </section>
+    <p class="hint">
+      This is a private, experimental peer tunnel for one trusted friend. It
+      forwards only the host’s game port. Connection options is bound to this
+      computer’s loopback interface and is not forwarded. UDP and TCP NAT
+      mappings are separate: reliable delivery over UDP does not create a native
+      public TCP listener. If all routes fail, the normal server connection
+      remains available.
+    </p>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/control.js"></script>
+  </body>
+</html>
